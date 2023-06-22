@@ -1,0 +1,16 @@
+{
+  "port": 8082,
+  "schema": "https",
+  "redis": {
+    "host": "",
+    "password": "",
+    "masterName": "",
+    "port": 0,
+    "database": 0
+  },
+  "master": {
+    "copy": "/master/copy",
+    "search": "/master/search",
+    "delete": "/master?key="
+  }
+}
