@@ -1,4 +1,5 @@
 import json
+from kafka import KafkaConsumer
 import math
 from kafka.structs import TopicPartition
 from src.services.kafkaservice import KafkaService
@@ -12,8 +13,7 @@ class GetTopMessageHandler():
         self.size=int(size)
         self.partition = partition
         
-    def get_topic_partition(self):
-        consumer = self.kafka_service.get_consumer()
+    def get_topic_partition(self, consumer: KafkaConsumer):
         topic_partitions = []
         if not self.partition:
             partitions = consumer.partitions_for_topic(self.topic_name)
@@ -44,7 +44,7 @@ class GetTopMessageHandler():
         
     def handle(self):    
         consumer = self.kafka_service.get_consumer()    
-        topic_partitions = self.get_topic_partition()
+        topic_partitions = self.get_topic_partition(consumer)
         consumer.assign(topic_partitions)
         end_offsets = consumer.end_offsets(topic_partitions)
         offsets = self.get_offset(len(topic_partitions))

@@ -28,7 +28,6 @@ class KafkaConfig:
 @dataclass
 class ApplicationConfig:
     port : int
-    schema : str
     redis : Redis
     master: Master
     kafka_configs: None | List[KafkaConfig]

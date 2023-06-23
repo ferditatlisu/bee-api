@@ -14,12 +14,20 @@ class GetOneMessageHandler():
                  ):
         self.kafka_service = kafka_service
         self.topic_name=topic_name
-        self.partition = int(partition) if partition else 0
+        self.partition = int(partition) if partition else None
         self.offset = offset
         
-    def get_topic_partition(self):
-        topic_partitions = []        
-        topic_partitions.append(TopicPartition(self.topic_name, self.partition))
+    def get_topic_partition(self, consumer: KafkaConsumer):
+        topic_partitions = []
+        if not self.partition:
+            partitions = consumer.partitions_for_topic(self.topic_name)
+            if partitions:
+                for partition in partitions:
+                    topic_partition = TopicPartition(self.topic_name, partition)
+                    topic_partitions.append(topic_partition)
+        
+        if self.partition:
+            topic_partitions.append(TopicPartition(self.topic_name, int(self.partition)))
                     
         return topic_partitions
             
@@ -41,8 +49,8 @@ class GetOneMessageHandler():
             consumer.seek(topic_partition, int(self.offset))
             
     def handle(self):    
-        consumer = self.kafka_service.get_consumer()    
-        topic_partitions = self.get_topic_partition()
+        consumer: KafkaConsumer = self.kafka_service.get_consumer()    
+        topic_partitions = self.get_topic_partition(consumer)
         consumer.assign(topic_partitions)
         if self.offset:
             self.from_offset(consumer, topic_partitions)

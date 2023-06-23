@@ -19,8 +19,18 @@ class ConsumerGroupOfTopicHandler:
         groups = self.redis_service.get_result(cache_key)
         topic_data_list: List[TopicData] = []
         for group_id in groups:
-            topic_data = LagOfGroupHandler(self.kafka_service, group_id.decode("utf-8"), self.topic_name).handle()
-            if topic_data:
-                topic_data_list.append(topic_data[0])
+            if not self.has_group(group_id, topic_data_list):    
+                topic_data = LagOfGroupHandler(self.kafka_service, group_id.decode("utf-8"), self.topic_name).handle()
+                if topic_data:
+                    topic_data_list.append(topic_data[0])
 
         return topic_data_list
+    
+    
+    def has_group(self, group_id, topic_data_list):
+        g_id = group_id.decode('utf-8')
+        for topic_data in topic_data_list:
+            if topic_data.group_id == g_id:
+                return True
+            
+        return False

@@ -56,6 +56,7 @@ class RedisService:
         
     def add_topic_consumer(self, key, value):
         self.redis_connection.rpush(key, value)
+        self.redis_connection.expire(key, timedelta(minutes=20))
         
     def get_topics(self, id: int):
         return self.get(ALL_TOPICS_BY_ID.format(id))

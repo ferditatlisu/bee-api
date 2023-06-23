@@ -12,7 +12,7 @@ def initialize_swagger():
     swagger_path = 'static/swagger.json'
     f = open(swagger_path)
     data = json.load(f)
-    data["schemes"] = [get_config().schema]
+    data["schemes"] = ["http", "https"]
     f.close()
     
     json_object = json.dumps(data, indent=2)
