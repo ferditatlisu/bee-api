@@ -47,7 +47,10 @@ class StartSearchHandler():
             "kafkaId": self.kafka_id,
             "value": self.data.value,
             "key": self.data.key,
-            "metadataKey": get_search_metadata_key(self.data.key)
+            "metadataKey": get_search_metadata_key(self.data.key),
+            "startDate": self.data.start_date,
+            "endDate": self.data.end_date,
+            "valueType": self.data.value_type
         }
         body = json.dumps(payload).encode("utf-8")
         http = urllib3.PoolManager()

@@ -9,16 +9,11 @@
     }
   },
   "basePath": "/",
-  "schemes": [
-    "http",
-    "https"
-  ],
+  "schemes": ["https", "http"],
   "paths": {
     "/kafka-cluster": {
       "get": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Get all kafka clusters info",
         "description": "Get all kafka clusters info",
         "operationId": "kafka-cluster",
@@ -31,9 +26,7 @@
     },
     "/search": {
       "get": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Search any keyword in key or value",
         "description": "Search any keyword in key or value",
         "operationId": "search",
@@ -52,6 +45,33 @@
             "description": "search value",
             "required": true,
             "type": "string",
+            "default": "4090d6f6f9b6663b6e4ef5d2996ae286"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "description": "startDate as ms",
+            "required": true,
+            "type": "integer",
+            "format": "int64",
+            "default": "4090d6f6f9b6663b6e4ef5d2996ae286"
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "description": "endDate as ms",
+            "required": true,
+            "type": "integer",
+            "format": "int64",
+            "default": "4090d6f6f9b6663b6e4ef5d2996ae286"
+          },
+          {
+            "name": "valueType",
+            "in": "query",
+            "description": "search in key(1), value(2) or header(4). Sum values of multiple selection",
+            "required": true,
+            "type": "integer",
+            "format": "int64",
             "default": "4090d6f6f9b6663b6e4ef5d2996ae286"
           },
           {
@@ -74,9 +94,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Delete search data",
         "description": "Delete search data",
         "operationId": "delete-search",
@@ -107,9 +125,7 @@
     },
     "/topics": {
       "get": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Get all topics",
         "description": "Get all topics",
         "operationId": "topics",
@@ -137,9 +153,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Remove topic",
         "description": "Remove topic",
         "operationId": "delete-topic",
@@ -170,9 +184,7 @@
     },
     "/consumers": {
       "get": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Get all consumer groups",
         "description": "Get all consumer groups",
         "operationId": "consumers",
@@ -200,9 +212,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Remove consumer group",
         "description": "Remove consumer group",
         "operationId": "delete-consumer-group",
@@ -233,9 +243,7 @@
     },
     "/consumer-group-by-topic": {
       "get": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Get all consumer groups via topic",
         "description": "Get all consumer groups via topic",
         "operationId": "consumer-group-by-topic",
@@ -267,9 +275,7 @@
     },
     "/consumer-group-by-group-id": {
       "get": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Get all consumer groups via group id",
         "description": "Get all consumer groups via group id",
         "operationId": "consumer-group-by-group-id",
@@ -301,9 +307,7 @@
     },
     "/get-top-messages": {
       "get": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Get messages of topic",
         "description": "Get messages of topic",
         "operationId": "get-top-messages",
@@ -352,9 +356,7 @@
     },
     "/get-message": {
       "get": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Get one message of topic",
         "description": "Get one message of topic",
         "operationId": "get-message",
@@ -400,9 +402,7 @@
     },
     "/get-topic-info": {
       "get": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Summarize of topic",
         "description": "Summarize of topic",
         "operationId": "get-topic-info",
@@ -434,9 +434,7 @@
     },
     "/get-consumer-info": {
       "get": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Summarize of consumer group",
         "description": "Summarize of consumer group",
         "operationId": "get-consumer-info",
@@ -468,9 +466,7 @@
     },
     "/get-topic-configuration": {
       "get": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Get all configuration of topic",
         "description": "Get all configuration of topic",
         "operationId": "get-topic-configuration",
@@ -502,15 +498,11 @@
     },
     "/put-change-offset": {
       "put": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Change group offset in a topic",
         "description": "Change group offset in a topic",
         "operationId": "put-change-offset",
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "parameters": [
           {
             "in": "body",
@@ -540,9 +532,7 @@
     },
     "/get-simulation-change-offset": {
       "get": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Simulation of change group offset in a topic",
         "description": "Simulation of change group offset in a topic",
         "operationId": "get-simulation-change-offset",
@@ -566,12 +556,7 @@
             "in": "query",
             "type": "string",
             "required": true,
-            "enum": [
-              "BEGINNING",
-              "END",
-              "SHIFTBY",
-              "DATE"
-            ],
+            "enum": ["BEGINNING", "END", "SHIFTBY", "DATE"],
             "default": "BEGINNING"
           },
           {
@@ -600,9 +585,7 @@
     },
     "/get-match-topic-and-groups-job": {
       "get": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Trigger a job to match groups for topics",
         "description": "Trigger a job to match groups for topics",
         "operationId": "get-match-topic-and-groups-job",
@@ -615,9 +598,7 @@
     },
     "/cache-clear": {
       "get": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Clear of caches belong to topics and groups",
         "description": "Clear of caches belong to topics and groups",
         "operationId": "cache-clear",
@@ -630,15 +611,11 @@
     },
     "/{topic}/publish-message": {
       "post": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Publish message to the topic",
         "description": "Publish message to the topic",
         "operationId": "post-publish-message",
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "parameters": [
           {
             "name": "topic",
@@ -686,15 +663,11 @@
     },
     "/copy-event": {
       "post": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Copy message to the specific topic from specific topic",
         "description": "Copy message to the specific topic from specific topic",
         "operationId": "post-copy-event",
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "parameters": [
           {
             "in": "body",
@@ -722,9 +695,7 @@
         }
       },
       "get": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Get all copy process",
         "description": "Get all copy process",
         "operationId": "get-copy-event",
@@ -751,9 +722,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Remove specific copy state",
         "description": "Remove specific copy state",
         "operationId": "delete-copy-event",
@@ -782,15 +751,11 @@
     },
     "/{topic}/topic-configuration": {
       "put": {
-        "tags": [
-          "kafka"
-        ],
+        "tags": ["kafka"],
         "summary": "Change specific value of topic's config",
         "description": "Change specific value of topic's config",
         "operationId": "put-topic-configuration",
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "parameters": [
           {
             "name": "topic",
@@ -844,11 +809,7 @@
     },
     "PutChangeOffsetRequest": {
       "type": "object",
-      "required": [
-        "group_id",
-        "topic_name",
-        "offset_type"
-      ],
+      "required": ["group_id", "topic_name", "offset_type"],
       "properties": {
         "group_id": {
           "type": "string"
@@ -859,12 +820,7 @@
         "offset_type": {
           "type": "string",
           "description": "Change type of offset",
-          "enum": [
-            "BEGINNING",
-            "END",
-            "SHIFTBY",
-            "DATE"
-          ]
+          "enum": ["BEGINNING", "END", "SHIFTBY", "DATE"]
         },
         "value": {
           "type": "integer",
@@ -874,10 +830,7 @@
     },
     "PostCopyEventRequest": {
       "type": "object",
-      "required": [
-        "fromTopic",
-        "toTopic"
-      ],
+      "required": ["fromTopic", "toTopic"],
       "properties": {
         "fromTopic": {
           "type": "string"
