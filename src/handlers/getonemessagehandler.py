@@ -4,6 +4,7 @@ from kafka.structs import TopicPartition, OffsetAndMetadata
 from src.services.kafkaservice import KafkaService
 from src.util.util import prepare_event_message
 from src.services.kafkaserviceinterface import KafkaServiceInterface
+from src.handlers.clearhandler import ClearHandler
 
 class GetOneMessageHandler():
     def __init__(self,
@@ -49,7 +50,7 @@ class GetOneMessageHandler():
             consumer.seek(topic_partition, int(self.offset))
             
     def handle(self):    
-        consumer: KafkaConsumer = self.kafka_service.get_consumer()    
+        consumer: KafkaConsumer = self.kafka_service.create_consumer()    
         topic_partitions = self.get_topic_partition(consumer)
         consumer.assign(topic_partitions)
         if self.offset:
@@ -57,11 +58,17 @@ class GetOneMessageHandler():
         else:
             self.from_last(consumer, topic_partitions)
 
-        msgs = consumer.poll(5000, 1, False)
+        msgs = consumer.poll(2000, 1, False)
         for _, msgs in msgs.items():
             for msg in msgs:
                 m = prepare_event_message(msg)
                 
+                self.clear_consumer(consumer)
                 return m
             
+        self.clear_consumer(consumer)
         return {}
+    
+    def clear_consumer(self, consumer: KafkaConsumer):
+        consumer.unsubscribe()
+        consumer.close()

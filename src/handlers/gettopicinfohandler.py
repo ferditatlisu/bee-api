@@ -1,37 +1,30 @@
 from typing import Any, Dict, List
+from kafka import KafkaConsumer
 
-from kafka.admin import ConfigResource, ConfigResourceType, KafkaAdminClient
-from kafka.protocol.admin import DescribeConfigsResponse
+from kafka.admin import ConfigResource, ConfigResourceType
 from kafka.structs import TopicPartition
-
-from src.configs.config import get_config
-from src.services.kafkaservice import KafkaService
 from src.services.kafkaserviceinterface import KafkaServiceInterface
-
 
 class GetTopicInfoHandler():
     def __init__(self, kafka_service : KafkaServiceInterface, topic: str):
         self.kafka_service = kafka_service
         self.topic = topic
+        self.consumer: KafkaConsumer = self.kafka_service.get_consumer()
         
     def get_topic_partition(self):
-        consumer = self.kafka_service.get_consumer()
         topic_partitions = []
-        partitions = consumer.partitions_for_topic(self.topic)
+        partitions = self.consumer.partitions_for_topic(self.topic)
         if partitions:
             for partition in partitions:
                 topic_partition = TopicPartition(self.topic, partition)
                 topic_partitions.append(topic_partition)
-    
-                    
+                   
         return topic_partitions
     
     def get_total_message_count(self):
-        consumer = self.kafka_service.get_consumer()    
         topic_partitions = self.get_topic_partition()
-        consumer.assign(topic_partitions)
-        end_offsets = consumer.end_offsets(topic_partitions)
-        beginning_offsets = consumer.beginning_offsets(topic_partitions)
+        end_offsets = self.consumer.end_offsets(topic_partitions)
+        beginning_offsets = self.consumer.beginning_offsets(topic_partitions)
         messages = {}
         
         if end_offsets:
@@ -47,8 +40,6 @@ class GetTopicInfoHandler():
             total_message_count += count
             
         return total_message_count
-        
-    
         
     def get_retention_ms(self):
         admin_client = self.kafka_service.get_admin_client()

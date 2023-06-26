@@ -1,8 +1,5 @@
-import json
 from kafka import KafkaConsumer
-import math
 from kafka.structs import TopicPartition
-from src.services.kafkaservice import KafkaService
 from src.util.util import prepare_event_message
 from src.services.kafkaserviceinterface import KafkaServiceInterface
 
@@ -12,11 +9,12 @@ class GetTopMessageHandler():
         self.topic_name=topic_name
         self.size=int(size)
         self.partition = partition
+        self.consumer: KafkaConsumer = kafka_service.create_consumer()
         
-    def get_topic_partition(self, consumer: KafkaConsumer):
+    def get_topic_partition(self):
         topic_partitions = []
         if not self.partition:
-            partitions = consumer.partitions_for_topic(self.topic_name)
+            partitions = self.consumer.partitions_for_topic(self.topic_name)
             if partitions:
                 for partition in partitions:
                     topic_partition = TopicPartition(self.topic_name, partition)
@@ -26,40 +24,21 @@ class GetTopMessageHandler():
             topic_partitions.append(TopicPartition(self.topic_name, int(self.partition)))
                     
         return topic_partitions
-    
-    def get_offset(self, partition_lenght: int):    
-        plus = self.size % partition_lenght
-        per_size = self.size // partition_lenght;
-        per_size_list = []
-        
-        for _ in range(0, partition_lenght):
-            number = per_size
-            if plus > 0:
-                number += 1
-                plus -=1
-            
-            per_size_list.append(number)
-        
-        return per_size_list
+
         
     def handle(self):    
-        consumer = self.kafka_service.get_consumer()    
-        topic_partitions = self.get_topic_partition(consumer)
-        consumer.assign(topic_partitions)
-        end_offsets = consumer.end_offsets(topic_partitions)
-        offsets = self.get_offset(len(topic_partitions))
-        index = 0
-        if end_offsets:
-            for topic_partition, hw in end_offsets.items():
-                offset = hw - offsets[index]
-                if offset < 0:
-                    offset = 0
-                consumer.seek(topic_partition, offset)
-                index +=1
+        topic_partitions = self.get_topic_partition()
+        self.consumer.assign(topic_partitions)
+        end_offsets = self.consumer.end_offsets(topic_partitions)
+        offsets = self.get_offsets(topic_partitions, end_offsets)
+
+        for topic_partition in topic_partitions:
+            offset = offsets[topic_partition.partition]
+            self.consumer.seek(topic_partition, offset)
 
         messages = []
         while True:
-            msgs = consumer.poll(2000, self.size, False)
+            msgs = self.consumer.poll(2000, self.size, False)
             if len(msgs) == 0:
                 break
             
@@ -74,6 +53,38 @@ class GetTopMessageHandler():
             if len(messages) >= self.size:
                 break
         
-        consumer.unsubscribe()
+        self.consumer.unsubscribe()
+        self.consumer.close()
         messages.sort(key=lambda x: x['publish_date_utc'], reverse=True)
         return messages
+
+
+    def get_offsets(self, topic_partitions, end_offsets):
+        beginning_offsets = self.consumer.beginning_offsets(topic_partitions)
+        end_messages = {}
+        begin_messages = {}
+        
+        if end_offsets:
+            for topic_partition, hw in end_offsets.items():
+                end_messages[topic_partition.partition] = hw
+                
+        if beginning_offsets:
+            for topic_partition, hw in beginning_offsets.items():
+                begin_messages[topic_partition.partition] = hw
+                
+        index = 0
+        for _ in range(0, self.size):
+            for key, _ in end_messages.items():
+                end_offset = end_messages[key]
+                begin_offset = begin_messages[key]
+                
+                if end_offset > begin_offset:
+                    end_messages[key] = end_offset-1
+                    index +=1
+                    if index == self.size:
+                        break
+            
+            if index == self.size:
+                break
+        
+        return end_messages
