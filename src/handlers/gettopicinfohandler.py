@@ -3,6 +3,7 @@ from kafka import KafkaConsumer
 
 from kafka.admin import ConfigResource, ConfigResourceType
 from kafka.structs import TopicPartition
+from src.handlers.messagecounthandler import MessageCountHandler
 from src.services.kafkaserviceinterface import KafkaServiceInterface
 
 class GetTopicInfoHandler():
@@ -25,20 +26,7 @@ class GetTopicInfoHandler():
         topic_partitions = self.get_topic_partition()
         end_offsets = self.consumer.end_offsets(topic_partitions)
         beginning_offsets = self.consumer.beginning_offsets(topic_partitions)
-        messages = {}
-        
-        if end_offsets:
-            for topic_partition, hw in end_offsets.items():
-                messages[topic_partition.partition] = hw
-        
-        if beginning_offsets:
-            for topic_partition, hw in beginning_offsets.items():
-                messages[topic_partition.partition] -= hw
-        
-        total_message_count = 0
-        for count in messages.values():
-            total_message_count += count
-            
+        total_message_count = MessageCountHandler(end_offsets, beginning_offsets).handle()
         return total_message_count
         
     def get_retention_ms(self):

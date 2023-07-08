@@ -2,6 +2,7 @@ from kafka import KafkaConsumer
 from kafka.structs import TopicPartition
 from src.util.util import prepare_event_message
 from src.services.kafkaserviceinterface import KafkaServiceInterface
+from src.handlers.messagecounthandler import MessageCountHandler
 
 class GetTopMessageHandler():
     def __init__(self, kafka_service : KafkaServiceInterface, topic_name : str, size : str, partition):
@@ -30,8 +31,9 @@ class GetTopMessageHandler():
         topic_partitions = self.get_topic_partition()
         self.consumer.assign(topic_partitions)
         end_offsets = self.consumer.end_offsets(topic_partitions)
-        offsets = self.get_offsets(topic_partitions, end_offsets)
-
+        beginning_offsets = self.consumer.beginning_offsets(topic_partitions)
+        offsets = self.get_offsets(topic_partitions, end_offsets, beginning_offsets)
+        total_message_count = MessageCountHandler(end_offsets, beginning_offsets).handle()
         for topic_partition in topic_partitions:
             offset = offsets[topic_partition.partition]
             self.consumer.seek(topic_partition, offset)
@@ -50,7 +52,7 @@ class GetTopMessageHandler():
                     m = prepare_event_message(msg)
                     messages.append(m)
                         
-            if len(messages) >= self.size:
+            if len(messages) >= self.size or len(messages) >= total_message_count:
                 break
         
         self.consumer.unsubscribe()
@@ -59,8 +61,7 @@ class GetTopMessageHandler():
         return messages
 
 
-    def get_offsets(self, topic_partitions, end_offsets):
-        beginning_offsets = self.consumer.beginning_offsets(topic_partitions)
+    def get_offsets(self, topic_partitions, end_offsets, beginning_offsets):
         end_messages = {}
         begin_messages = {}
         
