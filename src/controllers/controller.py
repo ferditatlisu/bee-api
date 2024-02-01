@@ -30,6 +30,7 @@ from src.services.kafkaserviceinterface import KafkaServiceInterface
 from src.configs.config import get_config
 from src.handlers.deleteconsumergrouphandler import DeleteConsumerGroupHandler
 from src.handlers.deletetopichandler import DeleteTopicHandler
+from src.handlers.changepartitioncounthandler import ChangePartitionCount
 
 class SearchController():
     def __init__(self):
@@ -323,5 +324,17 @@ def controller_initialize(app: Flask, controller: SearchController):
                                         topic_name,
                                         body["key"],
                                         body["value"])
+        
+        return handler.handle()
+    
+    
+    @app.route('/<topic>/change-partition-count', methods = ['PUT'])
+    def put_change_partition_count(topic):
+        kafka_service = controller.kafka_service.get_kafka_cluster(get_kafka_id_from_header(request))
+        body: Dict = json.loads(request.data)
+        topic_name = request.view_args.get('topic', None)
+        handler = ChangePartitionCount(kafka_service,
+                                        topic_name,
+                                        body["count"])
         
         return handler.handle()
