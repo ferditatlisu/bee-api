@@ -10,6 +10,7 @@
   "master": {
     "copy": "/master/copy",
     "search": "/master/search",
+    "partition": "/master/partition",
     "delete": "/master?key="
   }
 }

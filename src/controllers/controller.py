@@ -2,6 +2,7 @@ import json
 from threading import Thread
 from typing import Dict
 from flask import Flask, redirect, request, jsonify
+from src.handlers.partitiondistribute import PartitionDistributeHandler
 from src.handlers.updatetopicconfigurationhandler import UpdateTopicConfigurationHandler
 from src.handlers.getcopyeventhandler import GetCopyEventHandler
 from src.handlers.copyeventhandler import CopyEventHandler
@@ -336,5 +337,17 @@ def controller_initialize(app: Flask, controller: SearchController):
         handler = ChangePartitionCount(kafka_service,
                                         topic_name,
                                         body["count"])
+        
+        return handler.handle()
+    
+    
+    @app.route('/partition-event', methods = ['POST'])
+    def post_partition_distribute():
+        data = json.loads(request.data)
+        handler = PartitionDistributeHandler(controller.redis_service,
+                                       get_kafka_id_from_header(request),
+                                       data["groupId"],
+                                       data["topic"],
+                                       data["ignoredPartitions"])
         
         return handler.handle()

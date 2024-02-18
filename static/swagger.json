@@ -896,6 +896,44 @@
           }
         }
       }
+    },
+    "/partition-event": {
+      "post": {
+        "tags": [
+          "kafka"
+        ],
+        "summary": "Split event messages to other partitions",
+        "description": "Split event messages to other partitions",
+        "operationId": "post-partition-event",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Event",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PostPartitionEventRequest"
+            }
+          },
+          {
+            "name": "kafka-id",
+            "in": "header",
+            "description": "kafka-id",
+            "required": true,
+            "type": "integer",
+            "format": "int64",
+            "default": 0
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -985,6 +1023,28 @@
       "properties": {
         "count": {
           "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "PostPartitionEventRequest": {
+      "type": "object",
+      "required": [
+        "topic",
+        "groupId"
+      ],
+      "properties": {
+        "topic": {
+          "type": "string"
+        },
+        "groupId": {
+          "type": "string"
+        },
+        "ignoredPartitions": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
           "format": "int64"
         }
       }

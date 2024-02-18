@@ -14,6 +14,7 @@ class Redis:
 class Master:
     copy : str
     search : str   
+    partition: str
     delete: str 
     
 @dataclass

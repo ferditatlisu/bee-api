@@ -37,6 +37,7 @@ class ConfigurationManager:
         master_url = os.getenv("MASTER_URL", None)
         data['master']['copy'] = f'{master_url}{data["master"]["copy"]}'
         data['master']['search'] = f'{master_url}{data["master"]["search"]}'
+        data['master']['partition'] = f'{master_url}{data["master"]["partition"]}'
         data['master']['delete'] = f'{master_url}{data["master"]["delete"]}'
         
         redis_host: str = os.getenv("REDIS_HOST", "")
