@@ -933,6 +933,64 @@
             "description": "Successful operation"
           }
         }
+      },
+      "get": {
+        "tags": [
+          "kafka"
+        ],
+        "summary": "Get all partition distribute process",
+        "description": "Get all partition distribute process",
+        "operationId": "get-partition-event",
+        "parameters": [
+          {
+            "name": "topic",
+            "in": "query",
+            "description": "Topic",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "ignoredPartitions",
+            "in": "query",
+            "description": "Ignored Partitions",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "kafka"
+        ],
+        "summary": "Remove specific partition state",
+        "description": "Remove specific partition state",
+        "operationId": "delete-partition-event",
+        "parameters": [
+          {
+            "name": "topic",
+            "in": "query",
+            "description": "Topic",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "ignoredPartitions",
+            "in": "query",
+            "description": "Ignored Partitions",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        }
       }
     }
   },

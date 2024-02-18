@@ -2,7 +2,6 @@ import json
 from threading import Thread
 from typing import Dict
 from flask import Flask, redirect, request, jsonify
-from src.handlers.partitiondistribute import PartitionDistributeHandler
 from src.handlers.updatetopicconfigurationhandler import UpdateTopicConfigurationHandler
 from src.handlers.getcopyeventhandler import GetCopyEventHandler
 from src.handlers.copyeventhandler import CopyEventHandler
@@ -32,6 +31,9 @@ from src.configs.config import get_config
 from src.handlers.deleteconsumergrouphandler import DeleteConsumerGroupHandler
 from src.handlers.deletetopichandler import DeleteTopicHandler
 from src.handlers.changepartitioncounthandler import ChangePartitionCount
+from src.handlers.deletepartitiondistributehandler import DeletePartitionDistributeHandler
+from src.handlers.getpartitiondistributehandler import GetPartitionDistributeHandler
+from src.handlers.partitiondistributehandler import PartitionDistributeHandler
 
 class SearchController():
     def __init__(self):
@@ -349,5 +351,33 @@ def controller_initialize(app: Flask, controller: SearchController):
                                        data["groupId"],
                                        data["topic"],
                                        data["ignoredPartitions"])
+        
+        return handler.handle()
+    
+    
+    @app.route('/partition-event', methods = ['DELETE'])
+    def delete_partition_distribute():
+        queries = request.args.to_dict();
+        topic = queries.get("topic", None)
+        ignored_partitions = queries.get("ignoredPartitions", None)
+        if topic is None or ignored_partitions is None:
+            raise Exception("Parameter is null")
+        
+        handler = DeletePartitionDistributeHandler(
+                                    controller.redis_service,
+                                    topic,
+                                    ignored_partitions)
+        
+        return handler.handle()
+    
+    @app.route('/partition-event', methods = ['GET'])
+    def get_partition_distribute():
+        queries = request.args.to_dict();
+        topic = queries.get("topic", None)
+        ignored_partitions = queries.get("ignoredPartitions", None)
+        if topic is None or ignored_partitions is None:
+            raise Exception("Parameter is null")
+        
+        handler = GetPartitionDistributeHandler(controller.redis_service, topic, ignored_partitions)
         
         return handler.handle()
