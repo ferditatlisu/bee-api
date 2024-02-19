@@ -20,9 +20,12 @@ class DeletePartitionDistributeHandler():
         if event is None or len(event) == 0:
             raise Exception("Related Partition event couldn't found")
         
-        pod_name = event[b'podName'].decode('utf-8')
         self.redis_service.delete(key)
-        self.send_master(pod_name)
+        pod_name = event.get(b'podName', None)
+        if pod_name:
+            pod_name = pod_name.decode('utf-8')
+            self.send_master(pod_name)
+            
         return {}
     
     def send_master(self, pod_name: str):
