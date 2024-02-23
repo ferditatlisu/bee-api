@@ -1,7 +1,8 @@
 import json
 import json.decoder
+import threading
 
-from typing import Dict
+from typing import Dict, List
 
 from flask import Request
 from src.dto.offsettype import OffsetType
@@ -56,12 +57,26 @@ def prepare_headers_from_kafka_to_response(headers):
 
 def prepare_event_message(event_message):
     m = {}
-    value = json.loads(event_message.value)
-    m['value'] = value
     m['offset'] = event_message.offset
     m['partition'] = event_message.partition
     m['publish_date_utc'] = event_message.timestamp
     m['key'] = event_message.key.decode("utf-8") if event_message.key is not None else None
     m['headers'] = prepare_headers_from_kafka_to_response(event_message.headers)
+    try:
+        value = json.loads(event_message.value)
+        m['value'] = value
+    except Exception as _:
+        m['value'] = {"Error": "Bee could't serialize this message."}
     
     return m
+
+
+def execute_parallel(funcs: List):
+    threads: List[threading.Thread] = []
+    for func in funcs:
+        t1 = threading.Thread(target=func)
+        t1.start()
+        threads.append(t1)
+        
+    for t in threads:
+        t.join()
