@@ -25,7 +25,7 @@ class LagOfGroupHandler():
         topic_partitions = []
         for topic_data in group_topics:
             for partition in topic_data.partitions:
-                topic_partition = TopicPartition(topic_data.topic_name, partition["partition"])
+                topic_partition = TopicPartition(topic_data.topic_name, partition['partition'])
                 topic_partitions.append(topic_partition)
         
         if len(topic_partitions) == 0:
