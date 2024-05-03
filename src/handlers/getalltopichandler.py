@@ -1,6 +1,7 @@
 from typing import Any, Dict
+
+from kafka import KafkaConsumer
 from src.services.kafkaserviceinterface import KafkaServiceInterface
-from src.services.kafkaservice import KafkaService
 from src.services.redisservice import RedisService
 
 class GetAllTopicHandler():
@@ -13,13 +14,14 @@ class GetAllTopicHandler():
         topics = self.get_from_cache()
         if not topics:
             topics = []
-            consumer = self.kafka_service.create_consumer()
+            pool_item = self.kafka_service.get_consumer_pool_item()
+            consumer: KafkaConsumer = pool_item.get_item()
             topic_metadatas = consumer.topics()
             for topic_metadata in topic_metadatas:
                 topics.append(topic_metadata)
                 
             self.set_to_cache(topics)
-            consumer.close()
+            pool_item.release()
             
         return topics
     

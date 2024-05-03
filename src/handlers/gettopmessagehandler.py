@@ -4,6 +4,7 @@ from kafka.structs import TopicPartition
 from src.util.util import execute_parallel, prepare_event_message
 from src.services.kafkaserviceinterface import KafkaServiceInterface
 from src.handlers.messagecounthandler import MessageCountHandler
+from src.util.pool.poolitem import PoolItem
 
 class GetTopMessageHandler():
     def __init__(self, kafka_service : KafkaServiceInterface, topic_name : str, size : str, partition):
@@ -11,18 +12,13 @@ class GetTopMessageHandler():
         self.topic_name=topic_name
         self.size=int(size)
         self.partition = partition
-        execute_parallel([self.init_consumer, self.init_topic_partitions])
-        
-    def init_consumer(self):
-        self.consumer: KafkaConsumer = self.kafka_service.create_consumer()
-    
-    def init_topic_partitions(self):
-        self.topic_partitions = self.get_topic_partition()
+        self.consumer_pool_item = self.kafka_service.get_consumer_pool_item()
+        self.consumer: KafkaConsumer = self.consumer_pool_item.get_item()
         
     def get_topic_partition(self):
         topic_partitions = []
         if not self.partition:
-            partitions = self.kafka_service.get_consumer().partitions_for_topic(self.topic_name)
+            partitions = self.consumer.partitions_for_topic(self.topic_name)
             if partitions:
                 for partition in partitions:
                     topic_partition = TopicPartition(self.topic_name, partition)
@@ -54,7 +50,7 @@ class GetTopMessageHandler():
         return messages
         
     def handle(self):    
-        topic_partitions = self.topic_partitions
+        topic_partitions = self.get_topic_partition()
         self.consumer.assign(topic_partitions)
         end_offsets = self.consumer.end_offsets(topic_partitions)
         beginning_offsets = self.consumer.beginning_offsets(topic_partitions)
@@ -65,11 +61,9 @@ class GetTopMessageHandler():
 
         total_message_count = MessageCountHandler(end_offsets, beginning_offsets).handle()
         messages = self.get_messages(total_message_count)
-        self.consumer.unsubscribe()
-        self.consumer.close()
+        self.consumer_pool_item.release()
         messages.sort(key=lambda x: x['publish_date_utc'], reverse=True)
         return messages
-
 
     def get_offsets(self, end_offsets, beginning_offsets):
         end_messages = {}

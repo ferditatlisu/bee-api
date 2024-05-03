@@ -50,7 +50,8 @@ class GetOneMessageHandler():
             consumer.seek(topic_partition, int(self.offset))
             
     def handle(self):    
-        consumer: KafkaConsumer = self.kafka_service.create_consumer()    
+        self.pool_item = self.kafka_service.get_consumer_pool_item()
+        consumer: KafkaConsumer = self.pool_item.get_item()
         topic_partitions = self.get_topic_partition(consumer)
         consumer.assign(topic_partitions)
         if self.offset:
@@ -63,12 +64,11 @@ class GetOneMessageHandler():
             for msg in msgs:
                 m = prepare_event_message(msg)
                 
-                self.clear_consumer(consumer)
+                self.clear_consumer()
                 return m
             
-        self.clear_consumer(consumer)
+        self.clear_consumer()
         return {}
     
-    def clear_consumer(self, consumer: KafkaConsumer):
-        consumer.unsubscribe()
-        consumer.close()
+    def clear_consumer(self):
+        self.pool_item.release()

@@ -10,7 +10,8 @@ class GetTopicInfoHandler():
     def __init__(self, kafka_service : KafkaServiceInterface, topic: str):
         self.kafka_service = kafka_service
         self.topic = topic
-        self.consumer: KafkaConsumer = self.kafka_service.get_consumer()
+        self.pool_item = self.kafka_service.get_consumer_pool_item()
+        self.consumer: KafkaConsumer = self.pool_item.get_item()
         
     def get_topic_partition(self):
         topic_partitions = []
@@ -48,6 +49,7 @@ class GetTopicInfoHandler():
         partition_count = self.get_partition_count()
         retention_day = self.get_retention_ms()
         total_message_count = self.get_total_message_count()
+        self.pool_item.release()
         return { 
                 'partition_count': partition_count,
                 'retention_day' : retention_day,

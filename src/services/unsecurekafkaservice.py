@@ -4,24 +4,27 @@ from kafka import KafkaAdminClient, KafkaConsumer, KafkaProducer
 from src.services.kafkaserviceinterface import KafkaServiceInterface
 from src.configs.applicationconfig import KafkaConfig
 from src.configs.config import get_config
+from src.util.pool.poolinstantiate import PoolInstantiate
 
 class UnsecureKafkaService(KafkaServiceInterface):
     config: KafkaConfig
     consumer: KafkaConsumer
     admin_client : KafkaAdminClient
     producer: KafkaProducer
+    pool: PoolInstantiate
     
     def __init__(self, config: KafkaConfig):
         self.config = config
-        self.consumer = self.create_consumer()
         self.admin_client = self.create_admin_client()
         self.producer = self.create_producer()
+        self.pool = PoolInstantiate(self.create_consumer, self.dispose_consumer)
+        self.pool.prepare(5)
         
     def get_id(self):
         return self.config.id
         
-    def get_consumer(self):
-        return self.consumer
+    def get_consumer_pool_item(self):
+        return self.pool.get()
 
     def get_admin_client(self):
         return self.admin_client
@@ -35,6 +38,9 @@ class UnsecureKafkaService(KafkaServiceInterface):
                                       consumer_timeout_ms=5000,
                                       enable_auto_commit=False)
         
+    def dispose_consumer(self, consumer: KafkaConsumer):
+        consumer.unsubscribe()
+        
     def create_admin_client(self):
         return KafkaAdminClient(bootstrap_servers=self.config.host)
 
@@ -43,7 +49,8 @@ class UnsecureKafkaService(KafkaServiceInterface):
                                       auto_offset_reset="earliest",
                                       consumer_timeout_ms=25000,
                                       enable_auto_commit=False,
-                                      group_id= group_id)
+                                      group_id= group_id,
+                                      connections_max_idle_ms = 1000 * 60 * 60)
         
         
     def create_producer(self):

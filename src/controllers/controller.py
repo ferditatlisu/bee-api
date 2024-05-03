@@ -2,6 +2,8 @@ import json
 from threading import Thread
 from typing import Dict
 from flask import Flask, redirect, request, jsonify
+from kafka import KafkaConsumer
+from src.handlers.laghandler import LagHandler
 from src.handlers.updatetopicconfigurationhandler import UpdateTopicConfigurationHandler
 from src.handlers.getcopyeventhandler import GetCopyEventHandler
 from src.handlers.copyeventhandler import CopyEventHandler
@@ -34,26 +36,36 @@ from src.handlers.changepartitioncounthandler import ChangePartitionCount
 from src.handlers.deletepartitiondistributehandler import DeletePartitionDistributeHandler
 from src.handlers.getpartitiondistributehandler import GetPartitionDistributeHandler
 from src.handlers.partitiondistributehandler import PartitionDistributeHandler
+from src.util.pool.poolitem import PoolItem
+from src.handlers.createtopichandler import CreateTopicHandler
 
 class SearchController():
     def __init__(self):
         self.redis_service = RedisService()
-        self.kafka_service = KafkaService()
+        self.kafka_service = KafkaService(self.redis_service)
 
 def controller_initialize(app: Flask, controller: SearchController):
     @app.errorhandler(Exception) 
     def handle_error(error):
+        error_message = str(error)
+        try:
+            error_message += " || " + error.original_exception.args[0]
+        except Exception as _:
+            pass
+        
         print('Error occured when request was processing. ', str(error))
-        return {'message' : str(error)}, 500
+        return {'message' : error_message}, 500
     
     @app.route("/test")
     def test_endpoint():
         kafka_id = get_kafka_id_from_header(request)
         cluster = controller.kafka_service.get_kafka_cluster(kafka_id)
-        consumer = cluster.get_consumer()
+        pool_consumer: PoolItem = cluster.get_consumer_pool_item()
+        consumer: KafkaConsumer = pool_consumer.get_item()
         topics = consumer.topics()
         print(topics)
-        
+        # pool_consumer.release()
+        return None
     
     @app.route("/")
     def index():
@@ -104,6 +116,20 @@ def controller_initialize(app: Flask, controller: SearchController):
         handler = GetAllTopicHandler(kafka_service, controller.redis_service, True)
         return handler.handle()
     
+    @app.route('/topics/<topic>/groupIds/<groupId>/lag', methods = ['GET'])
+    def get_lag(topic: str, groupId: str):     
+        topic_name = request.view_args.get('topic', None)
+        if not topic_name:
+            raise KafkaSearchException("topic can not be empty")
+        
+        group_id = request.view_args.get('groupId', None)
+        if not group_id:
+            raise KafkaSearchException("group_id can not be empty")
+        
+        kafka_service = controller.kafka_service.get_kafka_cluster(get_kafka_id_from_header(request))
+        handler = LagHandler(kafka_service, groupId, topic)        
+        return handler.handle()
+            
     
     @app.route('/consumer-group-by-topic', methods = ['GET'])
     def consumer_by_topic():
@@ -316,6 +342,13 @@ def controller_initialize(app: Flask, controller: SearchController):
         kafka_service = controller.kafka_service.get_kafka_cluster(get_kafka_id_from_header(request))
         topic = request.args.get('topic', None)
         handler = DeleteTopicHandler(kafka_service, controller.redis_service, topic)
+        return handler.handle()
+    
+    @app.route('/topics', methods = ['POST'])
+    def create_topic():
+        kafka_service = controller.kafka_service.get_kafka_cluster(get_kafka_id_from_header(request))
+        body: Dict = json.loads(request.data)
+        handler = CreateTopicHandler(kafka_service, body["topic"], body["partitionCount"], body["retentionMs"])
         return handler.handle()
     
     @app.route('/<topic>/topic-configuration', methods = ['PUT'])

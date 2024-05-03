@@ -1,5 +1,4 @@
 from src.services.redisservice import TOPIC_WITH_CONSUMER_GROUPS, RedisService
-from src.services.kafkaservice import KafkaService
 from src.services.kafkaserviceinterface import KafkaServiceInterface
 
 class MatchGroupAndTopicHandler():

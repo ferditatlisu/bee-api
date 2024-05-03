@@ -1,4 +1,5 @@
 from typing import List
+from kafka import KafkaConsumer
 from kafka.structs import TopicPartition
 
 from src.dto.topicdata import TopicData
@@ -14,7 +15,8 @@ class LagOfGroupHandler():
     
     def handle(self):
         admin_client = self.stretch_kafka.get_admin_client()
-        consumer = self.stretch_kafka.get_consumer()
+        pool_item = self.stretch_kafka.get_consumer_pool_item()
+        consumer: KafkaConsumer = pool_item.get_item()
         group_topics : List[TopicData] = []
         group_offsets = admin_client.list_consumer_group_offsets(self.group_id)
         for topic_key, value in group_offsets.items():   
@@ -29,6 +31,7 @@ class LagOfGroupHandler():
                 topic_partitions.append(topic_partition)
         
         if len(topic_partitions) == 0:
+            pool_item.release()
             return None
         
         end_offsets = consumer.end_offsets(topic_partitions)
@@ -41,6 +44,7 @@ class LagOfGroupHandler():
         for topic_data in group_topics:
             topic_data.calculate_total_lag()
             
+        pool_item.release()
         return group_topics
 
     def get_topic_data(self, topic_data_list : List[TopicData], topic_name):

@@ -1,6 +1,5 @@
 from typing import List
 
-from src.services.kafkaservice import KafkaService
 from src.services.redisservice import RedisService
 from src.services.kafkaserviceinterface import KafkaServiceInterface
 

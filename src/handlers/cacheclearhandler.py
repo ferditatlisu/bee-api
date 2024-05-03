@@ -1,6 +1,5 @@
 from src.services.kafkaserviceinterface import KafkaServiceInterface
 from src.services.redisservice import ALL_GROUPS_BY_ID, ALL_TOPICS_BY_ID, RedisService
-from src.services.kafkaservice import KafkaService
 from src.handlers.getallconsumergroupshandler import GetAllConsumerGroupsHandler
 from src.handlers.getalltopichandler import GetAllTopicHandler
 

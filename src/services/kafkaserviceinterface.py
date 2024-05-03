@@ -1,6 +1,7 @@
 from abc import abstractmethod
 
 from kafka import KafkaAdminClient
+from src.util.pool.poolitem import PoolItem
 
 class KafkaServiceInterface():
     @abstractmethod
@@ -8,7 +9,7 @@ class KafkaServiceInterface():
         raise NotImplementedError()
     
     @abstractmethod
-    def get_consumer(self):
+    def get_consumer_pool_item(self) -> PoolItem:
         raise NotImplementedError()
     
     @abstractmethod

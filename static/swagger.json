@@ -132,6 +132,46 @@
         }
       }
     },
+    "/topics/{topic}/groupIds/{groupId}/lag": {
+      "get": {
+        "tags": [
+          "kafka"
+        ],
+        "summary": "Get laf of topic with groupId",
+        "description": "Get laf of topic with groupId",
+        "operationId": "get-topic-lag",
+        "parameters": [
+          {
+            "name": "topic",
+            "in": "path",
+            "description": "Topic Name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "groupId",
+            "in": "path",
+            "description": "GroupId",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "kafka-id",
+            "in": "header",
+            "description": "kafka-id",
+            "required": true,
+            "type": "integer",
+            "format": "int64",
+            "default": 0
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        }
+      }
+    },
     "/topics": {
       "get": {
         "tags": [
@@ -160,6 +200,42 @@
                 "type": "string"
               }
             }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "kafka"
+        ],
+        "summary": "Create a new topic",
+        "description": "Create a new topic",
+        "operationId": "post-topics",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Create topic",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateTopicRequest"
+            }
+          },
+          {
+            "name": "kafka-id",
+            "in": "header",
+            "description": "kafka-id",
+            "required": true,
+            "type": "integer",
+            "format": "int64",
+            "default": 0
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation"
           }
         }
       },
@@ -1035,6 +1111,27 @@
           ]
         },
         "value": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "CreateTopicRequest": {
+      "type": "object",
+      "required": [
+        "topic",
+        "partitionCount",
+        "retentionMs"
+      ],
+      "properties": {
+        "topic": {
+          "type": "string"
+        },
+        "partitionCount": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "retentionMs": {
           "type": "integer",
           "format": "int64"
         }

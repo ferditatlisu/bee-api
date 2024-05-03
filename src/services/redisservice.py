@@ -1,11 +1,10 @@
 import json
 from datetime import timedelta
-from os.path import split
 
 from redis import Redis, SentinelConnectionPool
 from redis.sentinel import Sentinel
 
-from src.configs.config import cfg, get_config
+from src.configs.config import  get_config
 from src.util.key import COPY_EVENT_PREFIX_KEY
 
 TOPIC_WITH_CONSUMER_GROUPS = "consumer_group:{}:{}"
@@ -16,6 +15,7 @@ class RedisService:
     redis_connection : Redis
     
     def __init__(self):
+        print("Redis service tries to connect")
         sentinel = Sentinel(self.__get_redis_sentinel_hosts())
         redis_config = get_config().redis
         pool = SentinelConnectionPool(service_name=redis_config.masterName, sentinel_manager=sentinel,
@@ -24,6 +24,7 @@ class RedisService:
 
 
         self.redis_connection = Redis(connection_pool=pool)
+        print("Redis service connected")
         
     def __get_redis_sentinel_hosts(self):
         redis_config = get_config().redis
