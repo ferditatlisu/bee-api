@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Set
 from kafka import KafkaConsumer
 from kafka.structs import TopicPartition, OffsetAndMetadata
 from src.exceptions.ChangeOffsetValueEmptyException import ChangeOffsetValueEmptyException
@@ -7,22 +7,24 @@ from src.dto.offsettype import OffsetType
 from src.services.kafkaserviceinterface import KafkaServiceInterface
 
 class GetNewOffsetHandler():
-    def __init__(self, kafka_service : KafkaServiceInterface, group_id : str, topic_name: str, offset_type: OffsetType, value):
+    def __init__(self, kafka_service: KafkaServiceInterface, group_id: str, topic_name: str, offset_type: OffsetType,
+                 value, partitions_to_update: Set[int] = None):
         self.kafka_service = kafka_service
-        self.group_id=group_id
-        self.topic_name=topic_name
+        self.group_id = group_id
+        self.topic_name = topic_name
         self.offset_type: OffsetType = offset_type
         self.value = int(value) if value else None
-        
-    def handle(self):    
-        consumer = self.kafka_service.create_consumer_with_group_id(self.group_id)   
-        topic_partitions = self.get_topic_partitions(consumer)             
+        self.partitions_to_update = partitions_to_update
+
+    def handle(self):
+        consumer = self.kafka_service.create_consumer_with_group_id(self.group_id)
+        topic_partitions = self.get_topic_partitions(consumer)
         consumer.assign(topic_partitions)
         offsets = self.get_offset(consumer, topic_partitions)
         return consumer, offsets
         
     def by_offset(self, topic_partitions):
-        if not self.value:
+        if self.value is None:
             raise ChangeOffsetValueEmptyException()
         
         offmeta = OffsetAndMetadata(self.value, '')
@@ -33,7 +35,7 @@ class GetNewOffsetHandler():
         return offset
 
     def by_timestamp(self, consumer: KafkaConsumer, topic_partitions):
-        if not self.value:
+        if self.value is None:
             raise ChangeOffsetValueEmptyException()
         
         timestamps = {}
@@ -94,8 +96,10 @@ class GetNewOffsetHandler():
         return offsets;
     
     def get_topic_partitions(self, consumer: KafkaConsumer):
-        topic_partitions: List[TopicPartition] = []        
-        partitions = consumer.partitions_for_topic(self.topic_name)
+        topic_partitions: List[TopicPartition] = []
+        partitions = consumer.partitions_for_topic(
+            self.topic_name) & self.partitions_to_update if self.partitions_to_update is not None \
+            else consumer.partitions_for_topic(self.topic_name)
         if partitions:
             for partition in partitions:
                 topic_partitions.append(TopicPartition(self.topic_name, partition))

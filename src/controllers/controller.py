@@ -227,12 +227,13 @@ def controller_initialize(app: Flask, controller: SearchController):
         kafka_service = controller.kafka_service.get_kafka_cluster(get_kafka_id_from_header(request))
         body: Dict = json.loads(request.data)
         handler = ChangeOffsetOfGroupHandler(kafka_service,
-                                        controller.redis_service, 
-                                        body["group_id"],
-                                        body["topic_name"],
-                                        convert_to_offset_type(body["offset_type"]),
-                                        body.get("value", None))
-        
+                                             controller.redis_service,
+                                             body["group_id"],
+                                             body["topic_name"],
+                                             convert_to_offset_type(body["offset_type"]),
+                                             body.get("value", None),
+                                             set(body.get("partitions_to_update", list())) if "partitions_to_update" in body else None)
+
         return handler.handle()
         
     @app.route('/get-simulation-change-offset', methods = ['GET'])
